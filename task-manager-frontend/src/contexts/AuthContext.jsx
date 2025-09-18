@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// Create context
 const AuthContext = createContext();
 
+// Custom hook for easier access
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -10,22 +12,24 @@ export const useAuth = () => {
   return context;
 };
 
+// Provider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  const API_BASE_URL = '/api';
+  // Use Vite env variable for backend URL
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     if (token) {
-      // Verify token and get user info
       fetchCurrentUser();
     } else {
       setLoading(false);
     }
   }, [token]);
 
+  // Fetch current user
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
@@ -39,7 +43,6 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         setUser(data.user);
       } else {
-        // Token is invalid
         logout();
       }
     } catch (error) {
@@ -50,6 +53,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Login function
   const login = async (username, password) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -75,6 +79,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Register function
   const register = async (username, email, password) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
@@ -100,12 +105,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Logout
   const logout = () => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
   };
 
+  // Context value
   const value = {
     user,
     token,
@@ -116,10 +123,5 @@ export const AuthProvider = ({ children }) => {
     API_BASE_URL,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
